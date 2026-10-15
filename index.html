@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radar Global — O que importa no Brasil e no mundo</title>
+<meta name="description" content="As 3 notícias mais relevantes do dia, com o relato de como cada veículo cobriu.">
+<meta property="og:title" content="Radar Global — O que importa no Brasil e no mundo">
+<meta property="og:description" content="As 3 notícias mais relevantes do dia, com o relato de como cada veículo cobriu.">
+<link rel="icon" href="assets/logo-radarglobal.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;800&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="topbar"></div>
+<header class="site-header"><div class="wrap">
+  <a class="logo-box" href="index.html"><img class="logo" src="assets/logo-horizontal.png" alt="Radar Global — O que importa no Brasil e no mundo"></a>
+  <nav class="site-nav"><a href="index.html">Hoje</a><a href="#arquivo">Arquivo</a><a href="sobre.html">Como fazemos</a></nav>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <div class="data" id="data-hoje">Carregando…</div>
+  <h1>As 3 notícias que importam hoje</h1>
+  <p>Selecionadas pela cobertura e pelo destaque nos principais veículos do Brasil e do mundo.</p>
+</div></section>
+
+<div class="wrap">
+  <div class="grid3" id="hoje"></div>
+  <section class="arquivo" id="arquivo"><h2>Edições anteriores</h2><div id="lista-arquivo"></div></section>
+</div>
+
+<footer class="site-footer"><div class="wrap">
+  <div><strong style="color:#fff">Radar Global</strong> — O que importa no Brasil e no mundo.</div>
+  <div>Curadoria diária com apoio de IA. <a href="sobre.html">Como fazemos</a></div>
+</div></footer>
+
+<script>
+// edicoes/index.json é gerado pelo GitHub Action (scripts/build-index.mjs):
+// [{ "data": "AAAA-MM-DD", "materias": [{ "posicao", "slug", "titulo", "linha_fina", "editoria" }] }, ...]  (mais recente primeiro)
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const longa = (iso) => new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+fetch('edicoes/index.json', { cache: 'no-cache' })
+  .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then((dias) => {
+    if (!dias.length) throw new Error('vazio');
+    const [hoje, ...antes] = dias;
+    document.getElementById('data-hoje').textContent = longa(hoje.data);
+    document.getElementById('hoje').innerHTML = hoje.materias.map((m) => `
+      <a class="card" href="edicoes/${esc(hoje.data)}/${esc(m.posicao)}-${esc(m.slug)}.html">
+        <div class="num">${esc(m.posicao)}</div>
+        <div class="ed">${esc(m.editoria)}</div>
+        <h2>${esc(m.titulo)}</h2>
+        <p>${esc(m.linha_fina)}</p>
+      </a>`).join('');
+    document.getElementById('lista-arquivo').innerHTML = antes.map((d) => `
+      <div class="dia"><strong>${esc(longa(d.data))}</strong>
+      ${d.materias.map((m) => `<a href="edicoes/${esc(d.data)}/${esc(m.posicao)}-${esc(m.slug)}.html">${esc(m.titulo)}</a>`).join('')}</div>`).join('') || '<p style="color:#5a5a5a">Ainda não há edições anteriores.</p>';
+  })
+  .catch(() => {
+    document.getElementById('data-hoje').textContent = 'Em breve';
+    document.getElementById('hoje').innerHTML = '<p style="padding:24px;background:#fff">A primeira edição ainda não foi publicada.</p>';
+  });
+</script>
+</body>
+</html>
